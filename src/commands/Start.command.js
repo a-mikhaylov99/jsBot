@@ -79,15 +79,6 @@ class StartCommand extends Command {
             await ctx.reply('Введите ключевое слово для поиска:');
             ctx.session.awaitingSubstringSearch = true;
             ctx.session.awaitingPraise = false;
-        } else if (
-            Object.values(CommandType).includes(messageText)
-            && messageText !== CommandType.LIST_TEXT
-            && messageText !== CommandType.COLLECTION_CHORDS
-        ) {
-            ctx.session.selectedPraise = messageText;
-            await ctx.reply('Введите название хвалы:');
-            ctx.session.awaitingPraise = false;
-            ctx.session.awaitingSongName = true;
         } else if (messageText === CommandType.LIST_TEXT) {
             const fileNames = await getFileNamesFromDirectory(textDirectoryPath);
             if (fileNames.length === 0) {
