@@ -85,7 +85,7 @@ class StartCommand extends Command {
                 await ctx.reply('Нет доступных хвал.');
             } else {
                 await ctx.reply(fileNames.join(',\n'));
-                await ctx.reply('Введите название хвалы:');
+                await ctx.reply('Какую хвалу из списка вывести?');
                 ctx.session.awaitingPraise = false;
                 ctx.session.awaitingSongName = true;
                 ctx.session.selectedPraise = CommandType.TEXT
