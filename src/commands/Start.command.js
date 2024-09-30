@@ -11,7 +11,6 @@ const CommandType = {
     VOICE: 'Ноты (Голос)',
     TEXT: 'Текст',
     LIST_TEXT: 'Список доступных хвал (ТЕКСТ)',
-    LIST_VOICE: 'Список доступных хвал (НОТЫ)',
     COLLECTION_CHORDS: 'Сборник хвал',
     SEARCH_BY_SUBSTRING: 'Поиск хвалы по ключевым словам',
 };
@@ -43,7 +42,7 @@ class StartCommand extends Command {
     async askForPraise(ctx) {
         await ctx.reply('Что Вам необходимо? Выберите из опций представленных ниже', Markup.keyboard([
             [CommandType.SEARCH_BY_SUBSTRING],
-            [CommandType.LIST_TEXT, CommandType.LIST_VOICE],
+            [CommandType.LIST_TEXT],
             [CommandType.COLLECTION_CHORDS],
         ]).oneTime().resize());
         ctx.session.awaitingPraise = true;
@@ -84,15 +83,13 @@ class StartCommand extends Command {
             Object.values(CommandType).includes(messageText)
             && messageText !== CommandType.LIST_TEXT
             && messageText !== CommandType.COLLECTION_CHORDS
-            && messageText !== CommandType.LIST_VOICE
         ) {
             ctx.session.selectedPraise = messageText;
             await ctx.reply('Введите название хвалы:');
             ctx.session.awaitingPraise = false;
             ctx.session.awaitingSongName = true;
-        } else if (messageText === CommandType.LIST_TEXT || messageText === CommandType.LIST_VOICE) {
-            const directoryPath = messageText === CommandType.LIST_TEXT ? textDirectoryPath : voiceDirectoryPath;
-            const fileNames = await getFileNamesFromDirectory(directoryPath);
+        } else if (messageText === CommandType.LIST_TEXT) {
+            const fileNames = await getFileNamesFromDirectory(textDirectoryPath);
             if (fileNames.length === 0) {
                 await ctx.reply('Нет доступных хвал.');
             } else {
