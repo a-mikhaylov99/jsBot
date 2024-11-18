@@ -1,5 +1,5 @@
 const { Command } = require("./Command");
-const { getFiles, getFileNamesFromDirectory } = require("../data/fileProccess");
+const { getFiles, getFileNamesFromDirectory, getFilesFromDirectory, getFileContent, parseFilesInDirectory } = require("../data/fileProccess");
 const fs = require("node:fs");
 const path = require("node:path");
 const { Markup } = require("telegraf");
@@ -85,7 +85,7 @@ class StartCommand extends Command {
                 await ctx.reply('Нет доступных хвал.');
             } else {
                 await ctx.reply(fileNames.join(',\n'));
-                await ctx.reply('Какую хвалу из списка вывести?');
+                await ctx.reply('Введите название хвалы:');
                 ctx.session.awaitingPraise = false;
                 ctx.session.awaitingSongName = true;
                 ctx.session.selectedPraise = CommandType.TEXT
@@ -133,14 +133,33 @@ class StartCommand extends Command {
 
     async processSubstringSearch(ctx) {
         const searchTerm = ctx.message.text.toLowerCase();
-        const textFiles = await getFiles(textDirectoryPath);
-        const matchedTextFiles = Object.values(textFiles).filter(fileName => fileName.toLowerCase().includes(searchTerm));
-        if (matchedTextFiles.length > 0) {
-            await this.replyWithFile(ctx, path.join(textDirectoryPath, matchedTextFiles[0]), DirectoryName.TEXT, matchedTextFiles[0]);
+        const textFiles = await getFiles(textDirectoryPath); 
+        const matchedFiles = [];
+        for (const fileName of Object.values(textFiles)) {
+            const filePath = path.join(textDirectoryPath, fileName);
+            const content = await getFileContent(filePath);
+            
+            if (content && content.toLowerCase().includes(searchTerm)) {
+                matchedFiles.push({
+                    fileName,
+                    content,
+                    matchingLines: content
+                        .split('\n') 
+                        .filter(line => line.toLowerCase().includes(searchTerm)) // Только строки с совпадениями
+                });
+            }
+        }
+    
+        if (matchedFiles.length > 0) {
+            const firstMatch = matchedFiles[0];
+            await this.replyWithFile(ctx, path.join(textDirectoryPath, firstMatch.fileName), DirectoryName.TEXT, firstMatch.fileName);
+    
+            // const matchesSummary = firstMatch.matchingLines.join('\n');
+            // await ctx.reply(`Найдено совпадение в файле ${firstMatch.fileName}:\n\n${matchesSummary}`);
         } else {
             await ctx.reply('Файлы с указанным ключевым словом не найдены.');
         }
-
+    
         ctx.session.awaitingSubstringSearch = false;
         await this.askForPraise(ctx);
     }
